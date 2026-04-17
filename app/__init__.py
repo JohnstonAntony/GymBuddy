@@ -1,15 +1,28 @@
 from flask import Flask
 from config import config_by_name
+from app.extensions import db
 
 
-def create_app(config_name="development"):
-    app = Flask(__name__)
+
+def create_app(config_name="development"): # creates folder if it doesn't exist so it doesn't throw an error when initzialising run.py
+    app = Flask(__name__, instance_relative_config=True)
+
+    import os
+    os.makedirs(app.instance_path, exist_ok=True)
+
     app.config.from_object(config_by_name[config_name])
 
-    # Temporary health-check route to verify the app runs.
+  
+    db.init_app(app)
+
+    # Creates database tables
+    with app.app_context():
+        from app.models import User, UserProfile  # noqa: F401
+        db.create_all()
+
+    # Health check route
     @app.route("/health")
     def health_check():
         return {"status": "ok", "message": "GymBuddy is running"}
-    # Will move routes into blueprints in a later lesson.
 
     return app

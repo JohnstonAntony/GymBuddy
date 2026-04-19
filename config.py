@@ -11,6 +11,11 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-secret-change-me"
     SQLALCHEMY_TRACK_MODIFICATIONS = False # disabled to save memory and improve perf
 
+     # JSON Web Token (JWT) settings
+    JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY") or "jwt-dev-secret-change-me"
+    JWT_EXPIRY_HOURS = 24
+
+
 
 class DevelopmentConfig(Config):
     DEBUG = True

@@ -15,6 +15,9 @@ def create_app(config_name="development"): # creates folder if it doesn't exist 
   
     db.init_app(app)
 
+    from app.api.auth import auth_blueprint
+    app.register_blueprint(auth_blueprint)
+
     # Creates database tables
     with app.app_context():
         from app.models import User, UserProfile  # noqa: F401

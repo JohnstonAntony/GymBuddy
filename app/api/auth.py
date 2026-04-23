@@ -1,7 +1,8 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g # Tripped up here didn't import g from flask.
 from app.extensions import db
 from app.models import User
 from app.utils.jwt_helper import generate_token
+from app.utils.auth_decorator import require_auth
 
 
 auth_blueprint = Blueprint("auth", __name__, url_prefix="/api/auth")
@@ -68,3 +69,9 @@ def login():
         "token": token,
         "user": user.to_dict(),
     }), 200
+
+@auth_blueprint.route("/me", methods=["GET"])
+@require_auth
+def get_me():
+    
+    return jsonify({"user": g.current_user.to_dict()}), 200 #returns current users data. 

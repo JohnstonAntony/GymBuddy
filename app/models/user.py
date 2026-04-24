@@ -24,12 +24,27 @@ class User(db.Model):  #user model to store basic user info with auth for unique
     def check_password(self, password):
         return check_password_hash(self.password_hash, password) #Checks if the provided password matches the stored hash, returns True or False.
 
-    def to_dict(self):
-        return {
+    def to_dict(self, include_profile=False):
+        """Return user data safe for API responses, no password hash."""
+        data = {
             "id": self.id,
             "username": self.username,
             "email": self.email,
-            "created_at": self.created_at.isoformat() if self.created_at else None, #Return user data safe for API responses
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+        if include_profile:
+            data["profile"] = self.profile.to_dict() if self.profile else None
+        return data
+    
+    def to_dict(self):
+        """Return profile data safe for API responses."""
+        return {
+            "full_name": self.full_name,
+            "date_of_birth": self.date_of_birth.isoformat() if self.date_of_birth else None,
+            "weight_kg": self.weight_kg,
+            "height_cm": self.height_cm,
+            "fitness_goal": self.fitness_goal,
+            "experience_level": self.experience_level,
         }
 
     def __repr__(self):

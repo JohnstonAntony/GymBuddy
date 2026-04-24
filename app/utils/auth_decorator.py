@@ -8,8 +8,9 @@ from app.extensions import db
 
 def require_auth(func):#Decorator to protect routes that need authentication, checks for JWT token and attaches the user to flask.g if valid.
     @wraps(func)
-    def wrapper(*args, **kwargs): # wrapper to give a unique name to the decorated function.
-
+    def wrapper(*args, **kwargs): 
+        """Decorator that protects a route by requiring a valid JWT in the
+         Auth header. Attaches the user to flask.g after validation."""
         auth_header = request.headers.get("Authorization")
         if not auth_header:
             return jsonify({"error": "Authorization header missing"}), 401

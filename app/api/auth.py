@@ -73,5 +73,5 @@ def login():
 @auth_blueprint.route("/me", methods=["GET"])
 @require_auth
 def get_me():
-    
-    return jsonify({"user": g.current_user.to_dict()}), 200 #returns current users data. 
+    """Return the currently authenticated user's info."""
+    return jsonify({"user": g.current_user.to_dict()}), 200 

@@ -15,8 +15,11 @@ def create_app(config_name="development"): # creates folder if it doesn't exist 
   
     db.init_app(app)
 
+    # Register blueprints
     from app.api.auth import auth_blueprint
+    from app.api.users import users_blueprint
     app.register_blueprint(auth_blueprint)
+    app.register_blueprint(users_blueprint)
 
     # Creates database tables
     with app.app_context():

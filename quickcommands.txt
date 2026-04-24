@@ -1,5 +1,6 @@
 curl -X POST http://localhost:5001/api/auth/register -H "Content-Type: application/json" -d '{"username":"john","email":"john@example.com","password":"password1"}'
 curl -X POST http://localhost:5001/api/auth/login -H "Content-Type: application/json" -d '{"email":"john@example.com","password":"password1"}'
 JWT token - 
-curl -i http://localhost:5001/api/auth/me -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJpYXQiOjE3NzY5NzA4NjIsImV4cCI6MTc3NzA1NzI2Mn0.LSyXQF5hMMXjSyUBzeCn-K315rLh9pgW-Fg4tJ7Uejc"
-"
+curl -s http://localhost:5001/api/users/me -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJpYXQiOjE3NzcwNTQyNTEsImV4cCI6MTc3NzE0MDY1MX0.bxmTyEOMY8fbNB9OmknX-C2eI-GNPolPOOLynxIBW2E"
+curl -s -X PATCH http://localhost:5001/api/users/me -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJpYXQiOjE3NzcwNTQyNTEsImV4cCI6MTc3NzE0MDY1MX0.bxmTyEOMY8fbNB9OmknX-C2eI-GNPolPOOLynxIBW2E" -H "Content-Type: application/json" -d '{"weight_kg": 84}'
+curl -s -X PATCH http://localhost:5001/api/users/me -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJpYXQiOjE3NzcwNTQyNTEsImV4cCI6MTc3NzE0MDY1MX0.bxmTyEOMY8fbNB9OmknX-C2eI-GNPolPOOLynxIBW2E" -H "Content-Type: application/json" -d '{"full_name": "John Man", "fitness_goal": "endurance", "experience_level": "intermediate", "height_cm": 172, "date_of_birth": "2028-03-19"}'

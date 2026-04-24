@@ -36,17 +36,6 @@ class User(db.Model):  #user model to store basic user info with auth for unique
             data["profile"] = self.profile.to_dict() if self.profile else None
         return data
     
-    def to_dict(self):
-        """Return profile data safe for API responses."""
-        return {
-            "full_name": self.full_name,
-            "date_of_birth": self.date_of_birth.isoformat() if self.date_of_birth else None,
-            "weight_kg": self.weight_kg,
-            "height_cm": self.height_cm,
-            "fitness_goal": self.fitness_goal,
-            "experience_level": self.experience_level,
-        }
-
     def __repr__(self):
         return f"<User {self.username}>"
 
@@ -64,6 +53,18 @@ class UserProfile(db.Model):
     height_cm = db.Column(db.Float)
     fitness_goal = db.Column(db.String(30))
     experience_level = db.Column(db.String(20))
+
+    def to_dict(self):
+        """Return profile data safe for API responses."""
+        return {
+            "full_name": self.full_name,
+            "date_of_birth": self.date_of_birth.isoformat() if self.date_of_birth else None,
+            "weight_kg": self.weight_kg,
+            "height_cm": self.height_cm,
+            "fitness_goal": self.fitness_goal,
+            "experience_level": self.experience_level,
+        }
+
 
     def __repr__(self):
         return f"<UserProfile for user_id={self.user_id}>"

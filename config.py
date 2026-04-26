@@ -25,10 +25,11 @@ class DevelopmentConfig(Config):
     )
 
 
-class TestingConfig(Config): # testing cofig to see if SQalchemy is working correctly
+class TestingConfig(Config):
+    """config for running tests."""
     TESTING = True
-    DEBUG = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" 
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    JWT_EXPIRY_HOURS = 1  # shorter expiry for testing
 
 
 class ProductionConfig(Config):

@@ -39,6 +39,10 @@ class ProductionConfig(Config):
         
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql://", 1)
+            
+        # use psycopg3 (newer driver with Python 3.14 support)
+        if url.startswith("postgresql://"):
+            url = url.replace("postgresql://", "postgresql+psycopg://", 1)
         return url
 
 

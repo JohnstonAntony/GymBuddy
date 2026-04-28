@@ -64,7 +64,7 @@ def test_me_with_token(client, auth_headers):
     """valid token test""" # hitting /me with a valid token returns 200 and the user info
     response = client.get("/api/auth/me", headers=auth_headers)
     assert response.status_code == 200
-    assert response.get_json()["user"]["email"] == "alice@example.com"
+    assert response.get_json()["user"]["email"] == "john@example.com"
 
 
 def test_me_with_garbage_token(client):

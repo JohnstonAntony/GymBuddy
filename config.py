@@ -1,5 +1,18 @@
 import os
 
+def _resolve_database_url():
+    """Read DATABASE_URL from env and normalise it for SQLAlchemy + psycopg3."""
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        raise RuntimeError("DATABASE_URL is required in production")
+    # Render/Heroku give postgres://, SQLAlchemy 2.x wants postgresql://
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    # use psycopg3 (newer driver with Python 3.14 support)
+    if url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+psycopg://", 1)
+    return url
+
 
 class Config:
     """base configuration. Shared across all environments."""
@@ -30,20 +43,7 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     """configuration for production deployment. All secrets must come from environment variables \u2014 no defaults."""
     DEBUG = False
-
-    @property
-    def SQLALCHEMY_DATABASE_URI(self):
-        url = os.environ.get("DATABASE_URL")
-        if not url:
-            raise RuntimeError("DATABASE_URL is required in production")
-        
-        if url.startswith("postgres://"):
-            url = url.replace("postgres://", "postgresql://", 1)
-            
-        # use psycopg3 (newer driver with Python 3.14 support)
-        if url.startswith("postgresql://"):
-            url = url.replace("postgresql://", "postgresql+psycopg://", 1)
-        return url
+    SQLALCHEMY_DATABASE_URI = _resolve_database_url() if os.environ.get("FLASK_ENV") == "production" else None
 
 
 config_by_name = {

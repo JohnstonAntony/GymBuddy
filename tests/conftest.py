@@ -3,10 +3,13 @@ from app import create_app
 from app.extensions import db
 
 
+
 @pytest.fixture
 def app():
     """creates a fresh Flask app configured for testing. Each test gets its own app and empty in-memory database."""
     app = create_app("testing")
+    with app.app_context():
+        db.create_all()
     yield app
 
 

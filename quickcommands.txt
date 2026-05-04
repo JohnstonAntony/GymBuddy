@@ -1,11 +1,10 @@
-curl -X POST http://localhost:5001/api/auth/register -H "Content-Type: application/json" -d '{"username":"john","email":"john@example.com","password":"password1"}'
-curl -X POST http://localhost:5001/api/auth/login -H "Content-Type: application/json" -d '{"email":"john@example.com","password":"password1"}'
-JWT token - 
-curl -s http://localhost:5001/api/users/me -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJpYXQiOjE3NzcwNTQyNTEsImV4cCI6MTc3NzE0MDY1MX0.bxmTyEOMY8fbNB9OmknX-C2eI-GNPolPOOLynxIBW2E"
-curl -s -X PATCH http://localhost:5001/api/users/me -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJpYXQiOjE3NzcwNTQyNTEsImV4cCI6MTc3NzE0MDY1MX0.bxmTyEOMY8fbNB9OmknX-C2eI-GNPolPOOLynxIBW2E" -H "Content-Type: application/json" -d '{"weight_kg": 84}'
-curl -s -X PATCH http://localhost:5001/api/users/me -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJpYXQiOjE3NzcwNTQyNTEsImV4cCI6MTc3NzE0MDY1MX0.bxmTyEOMY8fbNB9OmknX-C2eI-GNPolPOOLynxIBW2E" -H "Content-Type: application/json" -d '{"full_name": "John Man", "fitness_goal": "endurance", "experience_level": "intermediate", "height_cm": 172, "date_of_birth": "2028-03-19"}'
-curl https://gymbuddy-3de3.onrender.com/health
-curl -X POST https://gymbuddy-3de3.onrender.com/api/auth/register -H "Content-Type: application/json" -d '{"username":"prodtest","email":"prodtest@example.com","password":"password1"}'
-curl -X POST https://gymbuddy-3de3.onrender.com/api/auth/login -H "Content-Type: application/json" -d '{"username":"prodtest","email":"prodtest@example.com","password":"password1"}'
-curl https://gymbuddy-3de3.onrender.com/api/auth/me -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpYXQiOjE3Nzc0NjQ4OTAsImV4cCI6MTc3NzU1MTI5MH0.KiJyzwfmH2I5v-gXAQXC5oCmmOPdFSrGlKtN0gIgIvI"
-curl -X PATCH https://gymbuddy-3de3.onrender.com/api/users/me -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpYXQiOjE3Nzc0NjQ4OTAsImV4cCI6MTc3NzU1MTI5MH0.KiJyzwfmH2I5v-gXAQXC5oCmmOPdFSrGlKtN0gIgIvI" -H "Content-Type: application/json" -d '{"full_name":"Production Test","weight_kg":60,"experience_level":"intermediate"}'
+curl -s -X POST http://localhost:5001/api/auth/login -H "Content-Type: application/json" -d '{"email":"john@example.com","password":"password1"}'
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJpYXQiOjE3Nzc4OTc2ODcsImV4cCI6MTc3Nzk4NDA4N30.4b7tQDBWKEFyiwmi1_REVlp9CPLSsTG15MWUggMEWuA
+curl -s -X POST http://localhost:5001/api/workouts -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJpYXQiOjE3Nzc4OTc2ODcsImV4cCI6MTc3Nzk4NDA4N30.4b7tQDBWKEFyiwmi1_REVlp9CPLSsTG15MWUggMEWuA" -H "Content-Type: application/json" -d '{"name":"Push Day A","notes":"example_note"}'
+curl -s -X POST http://localhost:5001/api/workouts/1/sets -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJpYXQiOjE3Nzc4OTc2ODcsImV4cCI6MTc3Nzk4NDA4N30.4b7tQDBWKEFyiwmi1_REVlp9CPLSsTG15MWUggMEWuA" -H "Content-Type: application/json" -d '{"exercise_id":1,"reps":8,"weight_kg":82.5, "rpe" :9}'
+curl -s http://localhost:5001/api/workouts/1 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJpYXQiOjE3Nzc4OTc2ODcsImV4cCI6MTc3Nzk4NDA4N30.4b7tQDBWKEFyiwmi1_REVlp9CPLSsTG15MWUggMEWuA"
+
+
+
+
+

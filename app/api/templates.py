@@ -114,7 +114,7 @@ def start_workout_from_template(template_id):
     if error:
         return error
 
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
 
     # workout name defaults to template name unless overridden
     workout_name = data.get("name") or template.name

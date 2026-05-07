@@ -29,11 +29,13 @@ def create_app(config_name="development"): # creates folder if it doesn't exist 
     from app.api.exercises import exercises_blueprint
     from app.api.workouts import workouts_blueprint
     from app.api.sets import sets_blueprint
+    from app.api.templates import templates_blueprint
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(users_blueprint)
     app.register_blueprint(exercises_blueprint)
     app.register_blueprint(workouts_blueprint)
     app.register_blueprint(sets_blueprint)
+    app.register_blueprint(templates_blueprint)
 
 
     # Health check route

@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify, g
 from app.extensions import db
 from app.models import Workout, WorkoutSet
 from app.utils.auth_decorator import require_auth
+from app.models import Workout, WorkoutSet, Exercise
 
 
 stats_blueprint = Blueprint("stats", __name__, url_prefix="/api/stats")
@@ -64,4 +65,66 @@ def get_volume():
         "total_volume": total_volume,
         "from": date_from.date().isoformat() if date_from else None,
         "to": date_to.date().isoformat() if date_to else None,
+    }), 200
+
+@stats_blueprint.route("/prs", methods=["GET"])
+@require_auth
+def get_personal_records():
+    """gets the heaviest set for each exercise for the authenticated user. If there are ties, returns the most recent one."""
+
+    user_id = g.current_user.id
+
+    # subquery: max weight per exercise for this user
+    max_weights_subq = (
+        db.session.query(
+            WorkoutSet.exercise_id.label("exercise_id"),
+            db.func.max(WorkoutSet.weight_kg).label("max_weight"),
+        )
+        .join(Workout, WorkoutSet.workout_id == Workout.id)
+        .filter(Workout.user_id == user_id)
+        .group_by(WorkoutSet.exercise_id)
+        .subquery()
+    )
+
+    # outer query: find the actual sets matching those max weights
+    rows = (
+        db.session.query(WorkoutSet, Workout, Exercise)
+        .join(Workout, WorkoutSet.workout_id == Workout.id)
+        .join(Exercise, WorkoutSet.exercise_id == Exercise.id)
+        .join(
+            max_weights_subq,
+            db.and_(
+                WorkoutSet.exercise_id == max_weights_subq.c.exercise_id,
+                WorkoutSet.weight_kg == max_weights_subq.c.max_weight,
+            ),
+        )
+        .filter(Workout.user_id == user_id)
+        .order_by(Workout.started_at.desc())
+        .all()
+    )
+
+    # if there are multiple keep the most recent one
+    seen_exercises = set()
+    prs = []
+    for workout_set, workout, exercise in rows:
+        if exercise.id in seen_exercises:
+            continue
+        seen_exercises.add(exercise.id)
+        prs.append({
+            "exercise_id": exercise.id,
+            "exercise_name": exercise.name,
+            "exercise_category": exercise.category,
+            "weight_kg": workout_set.weight_kg,
+            "reps": workout_set.reps,
+            "set_id": workout_set.id,
+            "workout_id": workout.id,
+            "achieved_on": workout.started_at.isoformat() if workout.started_at else None,
+        })
+
+    # sort by exercise name for consistent ordering
+    prs.sort(key=lambda p: p["exercise_name"])
+
+    return jsonify({
+        "personal_records": prs,
+        "count": len(prs),
     }), 200

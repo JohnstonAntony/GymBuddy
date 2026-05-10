@@ -165,3 +165,102 @@ def test_volume_requires_auth(client):
     """no token = 401."""
     response = client.get("/api/stats/volume")
     assert response.status_code == 401
+
+def test_prs_empty(client, auth_headers):
+    """tests that a user with no workouts returns an empty PR list and zero count."""
+    response = client.get("/api/stats/prs", headers=auth_headers)
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["personal_records"] == []
+    assert data["count"] == 0
+
+
+def test_prs_single_exercise_max(client, auth_headers, seeded_exercise):
+    """only the heaviest set for the exercise is returned, even if there are multiple sets."""
+    workout_id = _create_workout_with_sets(
+        client, auth_headers, seeded_exercise,
+        [(8, 60), (5, 80), (3, 100), (5, 90)],
+    )
+
+    response = client.get("/api/stats/prs", headers=auth_headers)
+    data = response.get_json()
+    assert data["count"] == 1
+    pr = data["personal_records"][0]
+    assert pr["weight_kg"] == 100
+    assert pr["reps"] == 3
+
+
+def test_prs_multiple_exercises(app, client, auth_headers):
+    """different exercises get their own PR row."""
+    with app.app_context():
+        bench = Exercise(name="Bench", category="push",
+                         muscle_groups="chest", equipment_required="barbell")
+        squat = Exercise(name="Squat", category="legs",
+                         muscle_groups="quads", equipment_required="barbell")
+        db.session.add_all([bench, squat])
+        db.session.commit()
+        bench_id, squat_id = bench.id, squat.id
+
+    _create_workout_with_sets(client, auth_headers, bench_id, [(5, 100)])
+    _create_workout_with_sets(client, auth_headers, squat_id, [(5, 140)])
+
+    response = client.get("/api/stats/prs", headers=auth_headers)
+    data = response.get_json()
+    assert data["count"] == 2
+    # alphabetically sorted by exercise name
+    assert data["personal_records"][0]["exercise_name"] == "Bench"
+    assert data["personal_records"][0]["weight_kg"] == 100
+    assert data["personal_records"][1]["exercise_name"] == "Squat"
+    assert data["personal_records"][1]["weight_kg"] == 140
+
+
+def test_prs_excludes_other_users(client, auth_headers, carl_token, seeded_exercise):
+    """IDOR test for PR endpoint"""
+    carl_headers = {"Authorization": f"Bearer {carl_token}"}
+    _create_workout_with_sets(client, carl_headers, seeded_exercise, [(5, 200)])
+
+    response = client.get("/api/stats/prs", headers=auth_headers)
+    data = response.get_json()
+    assert data["personal_records"] == []
+
+
+def test_prs_dedupe_on_tied_weight(app, client, auth_headers, seeded_exercise):
+    """returns most recent set if there are multiple with the same max weight for an exercise."""
+    with app.app_context():
+        user_id = 1
+        # old PR
+        old_workout = Workout(
+            user_id=user_id, name="Old",
+            started_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        )
+        db.session.add(old_workout)
+        db.session.flush()
+        db.session.add(WorkoutSet(
+            workout_id=old_workout.id, exercise_id=seeded_exercise,
+            set_number=1, reps=5, weight_kg=100.0,
+        ))
+        # tied PR, more recent
+        new_workout = Workout(
+            user_id=user_id, name="New",
+            started_at=datetime(2026, 6, 1, tzinfo=timezone.utc),
+        )
+        db.session.add(new_workout)
+        db.session.flush()
+        db.session.add(WorkoutSet(
+            workout_id=new_workout.id, exercise_id=seeded_exercise,
+            set_number=1, reps=8, weight_kg=100.0,
+        ))
+        db.session.commit()
+
+    response = client.get("/api/stats/prs", headers=auth_headers)
+    data = response.get_json()
+    assert data["count"] == 1
+    pr = data["personal_records"][0]
+    assert pr["weight_kg"] == 100
+    assert pr["reps"] == 8
+    assert pr["achieved_on"].startswith("2026-06-01")
+
+
+def test_prs_requires_auth(client):
+    response = client.get("/api/stats/prs")
+    assert response.status_code == 401

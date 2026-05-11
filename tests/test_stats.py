@@ -2,6 +2,7 @@ import pytest
 from datetime import datetime, timezone
 from app.extensions import db
 from app.models import Exercise, Workout, WorkoutSet
+from datetime import date
 
 
 @pytest.fixture
@@ -263,4 +264,100 @@ def test_prs_dedupe_on_tied_weight(app, client, auth_headers, seeded_exercise):
 
 def test_prs_requires_auth(client):
     response = client.get("/api/stats/prs")
+    assert response.status_code == 401
+
+
+def test_frequency_empty_default_range(client, auth_headers):
+    """empty workout list returns zero counts for the default 365-day range inclusive."""
+    response = client.get("/api/stats/frequency", headers=auth_headers)
+    assert response.status_code == 200
+    data = response.get_json()
+    
+    assert len(data["frequency"]) == 366
+    assert all(item["count"] == 0 for item in data["frequency"])
+    assert data["total_workouts"] == 0
+
+
+def test_frequency_single_workout_today(client, auth_headers):
+    """a workout logged today appears in today's count and total, with correct date."""
+    client.post("/api/workouts", headers=auth_headers, json={"name": "Today"})
+
+    response = client.get("/api/stats/frequency", headers=auth_headers)
+    data = response.get_json()
+    assert data["total_workouts"] == 1
+
+    today_iso = date.today().isoformat()
+    today_entry = next(item for item in data["frequency"] if item["date"] == today_iso)
+    assert today_entry["count"] == 1
+
+
+def test_frequency_filled_range(app, client, auth_headers):
+    """custom range returns one entry per day"""
+    with app.app_context():
+        user_id = 1
+        
+        for d, count in [(datetime(2026, 2, 5, tzinfo=timezone.utc), 2),
+                         (datetime(2026, 2, 8, tzinfo=timezone.utc), 1)]:
+            for _ in range(count):
+                w = Workout(user_id=user_id, name="X", started_at=d)
+                db.session.add(w)
+        db.session.commit()
+
+    response = client.get(
+        "/api/stats/frequency?from=2026-02-04&to=2026-02-08",
+        headers=auth_headers,
+    )
+    data = response.get_json()
+    
+    assert len(data["frequency"]) == 5
+
+    
+    counts = {item["date"]: item["count"] for item in data["frequency"]}
+    assert counts["2026-02-04"] == 0
+    assert counts["2026-02-05"] == 2
+    assert counts["2026-02-06"] == 0
+    assert counts["2026-02-07"] == 0
+    assert counts["2026-02-08"] == 1
+    assert data["total_workouts"] == 3
+
+
+def test_frequency_invalid_from(client, auth_headers):
+    """misformatted from date returns 400."""
+    response = client.get(
+        "/api/stats/frequency?from=not-a-date",
+        headers=auth_headers,
+    )
+    assert response.status_code == 400
+
+
+def test_frequency_from_after_to(client, auth_headers):
+    """misformatted from date returns 400."""
+    response = client.get(
+        "/api/stats/frequency?from=2026-05-01&to=2026-04-01",
+        headers=auth_headers,
+    )
+    assert response.status_code == 400
+
+
+def test_frequency_range_too_large(client, auth_headers):
+    """range over 730 days returns 400."""
+    response = client.get(
+        "/api/stats/frequency?from=2020-01-01&to=2026-12-31",
+        headers=auth_headers,
+    )
+    assert response.status_code == 400
+
+
+def test_frequency_excludes_other_users(client, auth_headers, carl_token):
+    """carl's workouts do not appear in John's frequency response."""
+    carl_headers = {"Authorization": f"Bearer {carl_token}"}
+    client.post("/api/workouts", headers=carl_headers, json={"name": "Carl"})
+
+    response = client.get("/api/stats/frequency", headers=auth_headers)
+    data = response.get_json()
+    assert data["total_workouts"] == 0
+
+
+def test_frequency_requires_auth(client):
+    response = client.get("/api/stats/frequency")
     assert response.status_code == 401

@@ -4,6 +4,7 @@ from app.extensions import db
 from app.models import Workout, WorkoutSet
 from app.utils.auth_decorator import require_auth
 from app.models import Workout, WorkoutSet, Exercise
+from datetime import datetime, date, timedelta
 
 
 stats_blueprint = Blueprint("stats", __name__, url_prefix="/api/stats")
@@ -127,4 +128,75 @@ def get_personal_records():
     return jsonify({
         "personal_records": prs,
         "count": len(prs),
+    }), 200
+
+@stats_blueprint.route("/frequency", methods=["GET"])
+@require_auth
+def get_frequency():
+    """Gets the number of workouts per day for the user, with optional date range filtering with limits. Returns zero for days with no workouts."""
+
+    MAX_RANGE_DAYS = 730
+    DEFAULT_RANGE_DAYS = 365
+
+    user_id = g.current_user.id
+
+    # date range parsing and validation, falls back to defaults if not provided
+    date_to_arg = request.args.get("to")
+    if date_to_arg:
+        date_to_dt, error = _parse_date(date_to_arg, "to")
+        if error:
+            return jsonify({"error": error}), 400
+        date_to = date_to_dt.date()
+    else:
+        date_to = date.today()
+
+    date_from_arg = request.args.get("from")
+    if date_from_arg:
+        date_from_dt, error = _parse_date(date_from_arg, "from")
+        if error:
+            return jsonify({"error": error}), 400
+        date_from = date_from_dt.date()
+    else:
+        date_from = date_to - timedelta(days=DEFAULT_RANGE_DAYS)
+
+    if date_from > date_to:
+        return jsonify({"error": "from must not be after to"}), 400
+
+    range_days = (date_to - date_from).days
+    if range_days > MAX_RANGE_DAYS:
+        return jsonify({
+            "error": f"date range cannot exceed {MAX_RANGE_DAYS} days"
+        }), 400
+
+    # query to count workouts per day in the range, returns only days with workouts
+    date_expr = db.func.date(Workout.started_at).label("date")
+    count_expr = db.func.count(Workout.id).label("count")
+
+    rows = (
+        db.session.query(date_expr, count_expr)
+        .filter(Workout.user_id == user_id)
+        .filter(Workout.started_at >= datetime.combine(date_from, datetime.min.time()))
+        .filter(Workout.started_at < datetime.combine(
+            date_to + timedelta(days=1), datetime.min.time()
+        ))
+        .group_by(date_expr)
+        .all()
+    )
+
+    
+    counts_by_date = {str(row.date): row.count for row in rows}
+
+    # fill every day in the range, zero for empty days
+    frequency = []
+    current = date_from
+    while current <= date_to:
+        iso = current.isoformat()
+        frequency.append({"date": iso, "count": counts_by_date.get(iso, 0)})
+        current += timedelta(days=1)
+
+    return jsonify({
+        "frequency": frequency,
+        "total_workouts": sum(item["count"] for item in frequency),
+        "from": date_from.isoformat(),
+        "to": date_to.isoformat(),
     }), 200

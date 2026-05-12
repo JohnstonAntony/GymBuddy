@@ -10,6 +10,26 @@ auth_blueprint = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 @auth_blueprint.route("/register", methods=["POST"])
 def register():
+    """register a new user account.
+    ---
+    tags:
+      - Auth
+    responses:
+      '201':
+        description: User created
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                user:
+                  type: object
+      '400':
+        description: Invalid input (e.g. missing fields, short password)
+      '409':
+        description: Email or username already in use"""
     data = request.get_json()
 
     if not data:
@@ -19,21 +39,21 @@ def register():
     email = data.get("email")
     password = data.get("password")
 
-    #Basic validation - might add more checks later - password strength, email format, email and password double entry 
+    #basic validation - might add more checks later - password strength, email format, email and password double entry 
     if not username or not email or not password:
         return jsonify({"error": "username, email, and password are required"}), 400
 
     if len(password) < 8:
         return jsonify({"error": "Password must be at least 8 characters"}), 400
 
-    #Uniqueness checks 
+    # uniqueness validation
     if User.query.filter_by(email=email).first():
         return jsonify({"error": "Email already registered"}), 409
 
     if User.query.filter_by(username=username).first():
         return jsonify({"error": "Username already taken, please use a different username"}), 409
 
-    #Create user
+    #create user
     user = User(username=username, email=email)
     user.set_password(password)
     db.session.add(user)
@@ -45,8 +65,29 @@ def register():
     }), 201
 
 
+
+
 @auth_blueprint.route("/login", methods=["POST"]) #Login route to authenticate users and return a JWT token
 def login():
+    """authenticate user and return a JWT token.
+    ---
+    tags:
+    - Auth
+    responses:
+    '200':
+        description: Authenticated, JWT returned
+        content:
+        application/json:
+            schema:
+            type: object
+            properties:
+                token:
+                type: string
+                user:
+                type: object
+    '401':
+        description: Invalid credentials"""
+   
     data = request.get_json()
 
     if not data:
@@ -73,5 +114,16 @@ def login():
 @auth_blueprint.route("/me", methods=["GET"])
 @require_auth
 def get_me():
-    """Return the currently authenticated user's info."""
+    """return the currently authenticated user's info.
+    ---
+    tags:
+    - Auth
+    security:
+    - BearerAuth: []
+    responses:
+    '200':
+        description: Current user
+    '401':
+        description: Missing or invalid token"""
+    
     return jsonify({"user": g.current_user.to_dict()}), 200 

@@ -6,3 +6,4 @@ PyJWT==2.8.0
 pytest==8.3.3
 gunicorn==23.0.0
 psycopg[binary]==3.3.3
+flasgger==0.9.7.1

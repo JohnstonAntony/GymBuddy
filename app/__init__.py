@@ -1,6 +1,7 @@
 from flask import Flask, app
 from config import config_by_name
 from app.extensions import db, migrate
+from flasgger import Swagger
 
 
 
@@ -12,9 +13,38 @@ def create_app(config_name="development"): # creates folder if it doesn't exist 
 
     app.config.from_object(config_by_name[config_name])
 
+     # swagger configuration
+    app.config["SWAGGER"] = {
+        "title": "GymBuddy API",
+        "uiversion": 3,
+        "openapi": "3.0.2",
+        "specs_route": "/api/docs/",
+    }
+    swagger_template = {
+        "openapi": "3.0.2",
+        "info": {
+            "title": "GymBuddy API",
+            "description": "REST API for the GymBuddy workout tracking app.",
+            "version": "1.0.0",
+        },
+        "components": {
+            "securitySchemes": {
+                "BearerAuth": {
+                    "type": "http",
+                    "scheme": "bearer",
+                    "bearerFormat": "JWT",
+                }
+            }
+        },
+    }
+    
+    Swagger(app, template=swagger_template)
+
+
     # Initialise extensions
     db.init_app(app)
     migrate.init_app(app, db)
+    
 
     #import models so alembic can detect them
     from app import models # noqa: F401

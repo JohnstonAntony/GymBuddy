@@ -11,7 +11,23 @@ ALLOWED_CATEGORIES = {"push", "pull", "legs", "cardio", "core"}
 
 @exercises_blueprint.route("", methods=["GET"])
 def list_exercises():
-    """list of exercises, with optional filtering by category and muscle group. Results are sorted alphabetically by name"""
+    """list of exercises, with optional filtering by category and muscle group. Results are sorted alphabetically by name
+    ---
+    tags:
+      - Exercises
+    parameters:
+      - in: query
+        name: category
+        type: string
+      - in: query
+        name: muscle
+        type: string
+    responses:
+      '200':
+        description: List of exercises
+      '400':
+        description: Invalid category"""
+    
     query = Exercise.query
 
     category = request.args.get("category")
@@ -37,7 +53,23 @@ def list_exercises():
 
 @exercises_blueprint.route("/<int:exercise_id>", methods=["GET"])
 def get_exercise(exercise_id):
-    """returns details of a single exercise by ID. 404 if not found."""
+    """returns details of a single exercise by ID. 404 if not found.
+    ---
+    tags:
+      - Exercises
+    parameters:
+      - in: query
+        name: category
+        type: string
+      - in: query
+        name: muscle
+        type: string
+    responses:
+      '200':
+        description: List of exercises
+      '400':
+        description: Invalid category"""
+    
     exercise = db.session.get(Exercise, exercise_id)
     if not exercise:
         return jsonify({"error": "Exercise not found"}), 404

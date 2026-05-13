@@ -10,7 +10,25 @@ sets_blueprint = Blueprint("sets", __name__, url_prefix="/api/sets")
 @sets_blueprint.route("/<int:set_id>", methods=["PATCH"])
 @require_auth
 def update_set(set_id):
-    """Updates a set's reps, weight_kg, or rpe using patch."""
+    """Updates a set's reps, weight_kg, or rpe using patch.
+      ---
+    tags:
+      - Sets
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: set_id
+        required: true
+        type: integer
+    responses:
+      '200':
+        description: Set updated
+      '400':
+        description: Invalid input
+      '404':
+        description: Not found or not yours"""
+    
     workout_set, error = get_set_or_404(set_id)
     if error:
         return error
@@ -42,7 +60,23 @@ def update_set(set_id):
 @sets_blueprint.route("/<int:set_id>", methods=["DELETE"])
 @require_auth
 def delete_set(set_id):
-    """single set delete"""
+    """single set delete
+     ---
+    tags:
+      - Sets
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: set_id
+        required: true
+        type: integer
+    responses:
+      '204':
+        description: Set deleted
+      '404':
+        description: Not found or not yours"""
+    
     workout_set, error = get_set_or_404(set_id)
     if error:
         return error

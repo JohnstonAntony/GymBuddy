@@ -19,7 +19,16 @@ def _get_template_or_404(template_id):
 @templates_blueprint.route("", methods=["GET"])
 @require_auth
 def list_templates():
-    """list all of the current user's templates."""
+    """list all of the current user's templates.
+     ---
+    tags:
+      - Templates
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: List of templates"""
+    
     templates = (
         WorkoutTemplate.query
         .filter_by(user_id=g.current_user.id)
@@ -34,7 +43,18 @@ def list_templates():
 @templates_blueprint.route("", methods=["POST"])
 @require_auth
 def create_template():
-    """a new template creator"""
+    """a new template creator
+     ---
+    tags:
+      - Templates
+    security:
+      - BearerAuth: []
+    responses:
+      '201':
+        description: Template created
+      '400':
+        description: Invalid input"""
+    
     data = request.get_json()
     if not data:
         return jsonify({"error": "Missing JSON body"}), 400
@@ -62,7 +82,23 @@ def create_template():
 @templates_blueprint.route("/<int:template_id>", methods=["GET"])
 @require_auth
 def get_template(template_id):
-    """get details about a specific template with exercises."""
+    """get details about a specific template with exercises.
+    ---
+    tags:
+      - Templates
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: template_id
+        required: true
+        type: integer
+    responses:
+      '200':
+        description: Template details
+      '404':
+        description: Not found or not yours"""
+    
     template, error = _get_template_or_404(template_id)
     if error:
         return error
@@ -72,7 +108,25 @@ def get_template(template_id):
 @templates_blueprint.route("/<int:template_id>", methods=["PATCH"])
 @require_auth
 def update_template(template_id):
-    """update the name or exercises of a template. PATCH"""
+    """update the name or exercises of a template. PATCH
+     ---
+    tags:
+      - Templates
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: template_id
+        required: true
+        type: integer
+    responses:
+      '200':
+        description: Template updated
+      '400':
+        description: Invalid input
+      '404':
+        description: Not found or not yours"""
+    
     template, error = _get_template_or_404(template_id)
     if error:
         return error
@@ -98,7 +152,25 @@ def update_template(template_id):
 @templates_blueprint.route("/<int:template_id>", methods=["DELETE"])
 @require_auth
 def delete_template(template_id):
-    """deletes a template, existing workouts based on the template are not affected."""
+    """deletes a template, existing workouts based on the template are not affected.
+     ---
+    tags:
+      - Templates
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: template_id
+        required: true
+        type: integer
+    responses:
+      '200':
+        description: Template updated
+      '400':
+        description: Invalid input
+      '404':
+        description: Not found or not yours"""
+    
     template, error = _get_template_or_404(template_id)
     if error:
         return error
@@ -109,7 +181,23 @@ def delete_template(template_id):
 @templates_blueprint.route("/<int:template_id>/start", methods=["POST"])
 @require_auth
 def start_workout_from_template(template_id):
-    """creates a new workout based on the template with placeholder reps and weight which the user fills in when completing the workout."""
+    """creates a new workout based on the template with placeholder reps and weight which the user fills in when completing the workout.
+    ---
+    tags:
+      - Templates
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: template_id
+        required: true
+        type: integer
+    responses:
+      '201':
+        description: Workout created
+      '404':
+        description: Template not found or not yours"""
+    
     template, error = _get_template_or_404(template_id)
     if error:
         return error

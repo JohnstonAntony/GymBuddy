@@ -15,14 +15,38 @@ ALLOWED_LEVELS = {"beginner", "intermediate", "advanced", "expert"}
 @users_blueprint.route("/me", methods=["GET"])
 @require_auth
 def get_current_user():
-    """Return the authenticated user's data, including profile details if set."""
+    """Return the authenticated user's data, including profile details if set.
+      ---
+    tags:
+      - Users
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: User and profile
+      '401':
+        description: Missing or invalid token"""
+    
     return jsonify({"user": g.current_user.to_dict(include_profile=True)}), 200
 
 
 @users_blueprint.route("/me", methods=["PATCH"])
 @require_auth
 def update_current_user():
-    """Update fields on the authenticated user's profile, only fields updated by user request are updated."""
+    """Update fields on the authenticated user's profile, only fields updated by user request are updated.
+     ---
+    tags:
+      - Users
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: Profile updated
+      '400':
+        description: Invalid input
+      '401':
+        description: Missing or invalid token"""
+    
     data = request.get_json()
     if not data:
         return jsonify({"error": "Missing JSON body"}), 400

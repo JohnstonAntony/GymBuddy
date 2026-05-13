@@ -23,7 +23,24 @@ def _parse_date(value, field_name):
 @stats_blueprint.route("/volume", methods=["GET"])
 @require_auth
 def get_volume():
-    """endpoint to get total workout volume per day for the authenticated user, with optional date range filtering."""
+    """endpoint to get total workout volume per day for the authenticated user, with optional date range filtering.
+     ---
+    tags:
+      - Stats
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: query
+        name: from
+        type: string
+      - in: query
+        name: to
+        type: string
+    responses:
+      '200':
+        description: Volume time series
+      '400':
+        description: Invalid date format"""
 
     # parse and validate date parameters
     date_from, error = _parse_date(request.args.get("from"), "from")
@@ -71,7 +88,15 @@ def get_volume():
 @stats_blueprint.route("/prs", methods=["GET"])
 @require_auth
 def get_personal_records():
-    """gets the heaviest set for each exercise for the authenticated user. If there are ties, returns the most recent one."""
+    """gets the heaviest set for each exercise for the authenticated user. If there are ties, returns the most recent one.
+    ---
+    tags:
+      - Stats
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: Personal records by exercise"""
 
     user_id = g.current_user.id
 
@@ -133,7 +158,24 @@ def get_personal_records():
 @stats_blueprint.route("/frequency", methods=["GET"])
 @require_auth
 def get_frequency():
-    """Gets the number of workouts per day for the user, with optional date range filtering with limits. Returns zero for days with no workouts."""
+    """Gets the number of workouts per day for the user, with optional date range filtering with limits. Returns zero for days with no workouts.
+    ---
+    tags:
+      - Stats
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: query
+        name: from
+        type: string
+      - in: query
+        name: to
+        type: string
+    responses:
+      '200':
+        description: Frequency time series
+      '400':
+        description: Invalid range"""
 
     MAX_RANGE_DAYS = 730
     DEFAULT_RANGE_DAYS = 365

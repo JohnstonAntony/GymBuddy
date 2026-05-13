@@ -12,7 +12,32 @@ workouts_blueprint = Blueprint("workouts", __name__, url_prefix="/api/workouts")
 @workouts_blueprint.route("", methods=["GET"])
 @require_auth
 def list_workouts():
-    """lists workouts belonging to the current user, with optional filters and pagination. parameters: from (yyyy-mm-dd), to (yyyy-mm-dd), exercise_id, page, per_page."""
+    """lists workouts belonging to the current user, with optional filters and pagination. parameters: from (yyyy-mm-dd), to (yyyy-mm-dd), exercise_id, page, per_page.
+     ---
+    tags:
+      - Workouts
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: per_page
+        type: integer
+      - in: query
+        name: from
+        type: string
+      - in: query
+        name: to
+        type: string
+      - in: query
+        name: exercise_id
+        type: integer
+    responses:
+      '200':
+        description: Paginated workouts"""
+    
     query = Workout.query.filter_by(user_id=g.current_user.id)
 
     #optional date-range filter
@@ -60,7 +85,18 @@ def list_workouts():
 @workouts_blueprint.route("", methods=["POST"])
 @require_auth
 def create_workout():
-    """creates a new workout for the current user. Returns the created workout."""
+    """creates a new workout for the current user. Returns the created workout.Create a new workout.
+    ---
+    tags:
+      - Workouts
+    security:
+      - BearerAuth: []
+    responses:
+      '201':
+        description: Workout created
+      '400':
+        description: Invalid input"""
+    
     data = request.get_json()
     if not data:
         return jsonify({"error": "Missing JSON body"}), 400
@@ -83,7 +119,23 @@ def create_workout():
 @workouts_blueprint.route("/<int:workout_id>", methods=["GET"])
 @require_auth
 def get_workout(workout_id):
-    """retrieves details of a single workout by ID, including its sets and exercises. 404 if not found or doesn't belong to user."""
+    """retrieves details of a single workout by ID, including its sets and exercises. 404 if not found or doesn't belong to user.
+    ---
+    tags:
+      - Workouts
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: workout_id
+        required: true
+        type: integer
+    responses:
+      '200':
+        description: Workout details
+      '404':
+        description: Not found or not yours"""
+    
     workout, error = get_workout_or_404(workout_id)
     if error:
         return error
@@ -93,7 +145,25 @@ def get_workout(workout_id):
 @workouts_blueprint.route("/<int:workout_id>", methods=["PATCH"])
 @require_auth
 def update_workout(workout_id):
-    """updates a workout's name, notes, or completed_at timestamp using patch."""
+    """updates a workout's name, notes, or completed_at timestamp using patch.
+    ---
+    tags:
+      - Workouts
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: workout_id
+        required: true
+        type: integer
+    responses:
+      '200':
+        description: Workout updated
+      '400':
+        description: Invalid input
+      '404':
+        description: Not found or not yours"""
+    
     workout, error = get_workout_or_404(workout_id)
     if error:
         return error
@@ -123,7 +193,23 @@ def update_workout(workout_id):
 @workouts_blueprint.route("/<int:workout_id>", methods=["DELETE"])
 @require_auth
 def delete_workout(workout_id):
-    """deletes a workout and its sets, cascades parent-child."""
+    """deletes a workout and its sets, cascades parent-child.
+     ---
+    tags:
+      - Workouts
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: workout_id
+        required: true
+        type: integer
+    responses:
+      '204':
+        description: Workout deleted
+      '404':
+        description: Not found or not yours"""
+    
     workout, error = get_workout_or_404(workout_id)
     if error:
         return error
@@ -136,7 +222,23 @@ def delete_workout(workout_id):
 @workouts_blueprint.route("/<int:workout_id>/sets", methods=["POST"])
 @require_auth
 def add_set_to_workout(workout_id):
-    """adds a set to workout."""
+    """adds a set to workout.
+     ---
+    tags:
+      - Workouts
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: workout_id
+        required: true
+        type: integer
+    responses:
+      '204':
+        description: Workout deleted
+      '404':
+        description: Not found or not yours"""
+    
     workout, error = get_workout_or_404(workout_id)
     if error:
         return error

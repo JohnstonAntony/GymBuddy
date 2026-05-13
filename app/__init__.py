@@ -69,6 +69,16 @@ def create_app(config_name="development"): # creates folder if it doesn't exist 
     app.register_blueprint(templates_blueprint)
     app.register_blueprint(stats_blueprint)
 
+    @app.route("/")
+    def landing():
+        return {
+            "name": "GymBuddy API",
+            "status": "running",
+            "documentation": "/api/docs/",
+            "health": "/health",
+            "github": "https://github.com/JohnstonAntony/GymBuddy",
+        }
+
 
     # Health check route
     @app.route("/health")
@@ -76,3 +86,4 @@ def create_app(config_name="development"): # creates folder if it doesn't exist 
         return {"status": "ok", "message": "GymBuddy is running"}
 
     return app
+

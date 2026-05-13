@@ -50,7 +50,7 @@ The API is a single Flask service deployed on Render. Persistent data lives on N
 
 Requires Python 3.11 or newer.
 
-"""bash
+```bash
 git clone https://github.com/JohnstonAntony/GymBuddy.git
 cd GymBuddy
 python3 -m venv venv
@@ -67,7 +67,7 @@ flask --app run.py seed-exercises
 
 # Run
 python run.py
-"""
+```
 
 The API listens on `http://localhost:5001`. Interactive docs are at `http://localhost:5001/api/docs/`.
 
